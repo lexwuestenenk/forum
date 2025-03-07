@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}{{ question.title }}{% endblock title %}
+{% block header %}
+    {{ answer_creation_form.media }}
+{% endblock header %}
+
+{% block content %}
+    <div class="m-5">
+        <span class="text-4xl font-semibold">{{ question.title }}</span>
+        <div class="flex flex-row gap-3 pt-2 text-slate-500">
+            <span class="text-sm">Asked {{ question.created_at }}</span>
+            <span class="text-sm">Modified {{ question.updated_at }}</span>
+            <span class="text-sm">Viewed <span id="question-view-count">{{ question.view_count }}</span><span id="question-view-count-text">{% if question.view_count == 1 %} time {% else %} times {% endif %}<span></span>
+        </div>
+        <hr class="my-4">
+        <div class="flex flex-row gap-7">
+            <div class="flex flex-col gap-3">
+                <button data-question-id="{{ question.pk }}" id="question-upvote-button-{{ question.pk }}" class="question-upvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 {% if question_upvoted %}bg-orange-300 text-white{% endif %}">
+                    <svg aria-hidden="true" class="svg-icon iconArrowUp pointer-events-none" width="18" height="18" viewBox="0 0 18 18"><path d="M1 12h16L9 4z"></path></svg>
+                </button>
+                <span class="text-center font-bold font-2xl" id="question-vote-count-{{ question.pk }}">{{ question.vote_count }}</span>
+                <button data-question-id="{{ question.pk }}" id="question-downvote-button-{{ question.pk }}" class="question-downvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 {% if question_downvoted %}bg-blue-300 text-white{% endif %}">
+                    <svg aria-hidden="true" class="svg-icon iconArrowDown pointer-events-none" width="18" height="18" viewBox="0 0 18 18"><path d="M1 6h16l-8 8z"></path></svg>
+                </button>
+            </div>
+            <div class="pt-5" id="ckeditor-5-text-container">
+                {{ question.text | safe }}
+            </div>
+        </div>
+        <hr class="my-4">
+        <div>
+            <div class="flex flex-row pb-3">
+                {% if answers.count == 1 %}
+                    <span class="text-2xl font-semibold">{{ answers.count }} answer</span>
+                {% else %}
+                    <span class="text-2xl font-semibold">{{ answers.count }} answers</span>
+                {% endif %}
+            </div>
+            {% for answer in answers %}
+                <div class="flex flex-col pb-10">
+                    <div class="flex flex-row gap-7">
+                        <div class="flex flex-col gap-3">
+                            <button data-answer-id="{{ answer.pk }}" id="answer-upvote-button-{{ answer.pk }}" class="answer-upvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 {% if answer.pk in answers_upvoted %}bg-orange-300 text-white{% endif %}">
+                                <svg aria-hidden="true" class="svg-icon iconArrowUp pointer-events-none" width="18" height="18" viewBox="0 0 18 18"><path d="M1 12h16L9 4z"></path></svg>
+                            </button>
+                            <span class="text-center font-bold font-2xl" id="vote-count-{{ answer.pk }}">{{ answer.vote_count }}</span>
+                            <button data-answer-id="{{ answer.pk }}" id="answer-downvote-button-{{ answer.pk }}" class="answer-downvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 {% if answer.pk in answers_downvoted %}bg-blue-300 text-white{% endif %}">
+                                <svg aria-hidden="true" class="svg-icon iconArrowDown pointer-events-none" width="18" height="18" viewBox="0 0 18 18"><path d="M1 6h16l-8 8z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="w-full">
+                            <div id="ckeditor-5-text-container">
+                                {{ answer.text | safe }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-row pt-5 justify-between">
+                        <div class="flex flex-row gap-3 text-slate-500 text-sm">
+                            <span>Share</span>
+                            <span>Edit</span>
+                            <span>Follow</span>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <span class="text-slate-500 text-xs">{{ answer.created_at }}</span>
+                            <div class="flex flex-row gap-2">
+                               <div class="w-8 h-8 bg-red-500 rounded-md">
+                               </div> 
+                               <div class="flex flex-col">
+                                    <span class="text-blue-500 text-sm">{{ answer.user.username }}</span>
+                               </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <form method="post" class="pt-5">
+            {% csrf_token %}
+            {{ answer_creation_form | crispy }}
+            <button type="submit" name="answer_submit" class="p-3 bg-blue-700 text-white mt-2 align-right rounded-md">Answer</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch("{% url 'question-view' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': "{{ csrf_token }}",
+                },
+                body: JSON.stringify({
+                    question_id: "{{ question.id }}"
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('question-view-count').textContent = data.view_count;
+                if(data.view_count == 1) {
+                    document.getElementById('question-view-count-text').textContent = " time"
+                }
+            });
+        });
+
+        document.querySelectorAll('.answer-upvote-button').forEach(button => {
+            button.addEventListener('click', function(event) {
+                const answer_id = event.target.getAttribute('data-answer-id')
+                const csrf_token = document.querySelector('[name=csrfmiddlewaretoken]').value 
+
+                fetch("{% url 'answer-vote' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrf_token,
+                    },
+                    body: JSON.stringify({
+                        answer_id: answer_id,
+                        vote_type: 'upvote',
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById(`vote-count-${answer_id}`).textContent = data.vote_count
+                    const downvote_button = document.getElementById(`answer-downvote-button-${answer_id}`);
+                    if (downvote_button) {
+                        downvote_button.classList.remove('bg-blue-300', 'text-white');
+                    }      
+                    const upvote_button = document.getElementById(`answer-upvote-button-${answer_id}`);
+                    if (upvote_button) {
+                        upvote_button.classList.add('bg-orange-300', 'text-white');
+                    }
+                })
+            });
+        });
+
+        document.querySelectorAll('.answer-downvote-button').forEach(button => {
+            button.addEventListener('click', function(event) {
+                const answer_id = event.target.getAttribute('data-answer-id')
+                const csrf_token = document.querySelector('[name=csrfmiddlewaretoken]').value 
+
+                fetch("{% url 'answer-vote' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrf_token,
+                    },
+                    body: JSON.stringify({
+                        answer_id: answer_id,
+                        vote_type: 'downvote',
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById(`vote-count-${answer_id}`).textContent = data.vote_count
+                    const downvoteButton = document.getElementById(`answer-downvote-button-${answer_id}`);
+                    if (downvoteButton) {
+                        downvoteButton.classList.add('bg-blue-300', 'text-white');
+                    }      
+                    const upvote_button = document.getElementById(`answer-upvote-button-${answer_id}`);
+                    if (upvote_button) {
+                        upvote_button.classList.remove('bg-orange-300', 'text-white');
+                    }
+                })
+            });
+        });
+
+        button = document.querySelector('.question-upvote-button')
+        button.addEventListener('click', function(event) {
+            const question_id = event.target.getAttribute('data-question-id')
+            const csrf_token = document.querySelector('[name=csrfmiddlewaretoken]').value 
+
+            fetch("{% url 'question-vote' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrf_token,
+                },
+                body: JSON.stringify({
+                    question_id: question_id,
+                    vote_type: 'upvote',
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(`question-vote-count-${question_id}`).textContent = data.vote_count
+                const downvote_button = document.getElementById(`question-downvote-button-${question_id}`);
+                if (downvote_button) {
+                    downvote_button.classList.remove('bg-blue-300', 'text-white');
+                }      
+                const upvote_button = document.getElementById(`question-upvote-button-${question_id}`);
+                if (upvote_button) {
+                    upvote_button.classList.add('bg-orange-300', 'text-white');
+                }
+            })
+        });
+
+        button = document.querySelector('.question-downvote-button')
+        button.addEventListener('click', function(event) {
+            const question_id = event.target.getAttribute('data-question-id')
+            const csrf_token = document.querySelector('[name=csrfmiddlewaretoken]').value 
+
+            fetch("{% url 'question-vote' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrf_token,
+                },
+                body: JSON.stringify({
+                    question_id: question_id,
+                    vote_type: 'downvote',
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(`question-vote-count-${question_id}`).textContent = data.vote_count
+                const downvote_button = document.getElementById(`question-downvote-button-${question_id}`);
+                if (downvote_button) {
+                    downvote_button.classList.add('bg-blue-300', 'text-white');
+                }      
+                const upvote_button = document.getElementById(`question-upvote-button-${question_id}`);
+                if (upvote_button) {
+                    upvote_button.classList.remove('bg-orange-300', 'text-white');
+                }
+            })
+        });
+    </script>
+{% endblock content %}

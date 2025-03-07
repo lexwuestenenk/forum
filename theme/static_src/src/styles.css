@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "flowbite/src/themes/default";
+@plugin "flowbite/plugin";
+@source "../node_modules/flowbite";
+
+/* Code block style */
+#ckeditor-5-text-container > pre {
+    background-color: rgb(226 232 240 / var(--tw-bg-opacity, 1));
+    border-radius: 5px;
+    padding: 1rem;
+}
