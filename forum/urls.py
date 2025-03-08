@@ -5,12 +5,15 @@ from django.conf.urls.static import static
 
 from forum.views import (
     HomeView,
+    
     QuestionListView,
     QuestionCreateView,
     QuestionDetailView,
     QuestionDeleteView,
+    
     QuestionVoteView,
     QuestionViewView,
+    
     AnswerVoteView,
 )
 

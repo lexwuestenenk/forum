@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags forum_extras %}
 
 {% block title %}{{ question.title }}{% endblock title %}
 {% block header %}
@@ -40,7 +40,7 @@
                 {% endif %}
             </div>
             {% for answer in answers %}
-                <div class="flex flex-col pb-10">
+                <div class="flex flex-col">
                     <div class="flex flex-row gap-7">
                         <div class="flex flex-col gap-3">
                             <button data-answer-id="{{ answer.pk }}" id="answer-upvote-button-{{ answer.pk }}" class="answer-upvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 {% if answer.pk in answers_upvoted %}bg-orange-300 text-white{% endif %}">
@@ -59,9 +59,9 @@
                     </div>
                     <div class="flex flex-row pt-5 justify-between">
                         <div class="flex flex-row gap-3 text-slate-500 text-sm">
-                            <span>Share</span>
-                            <span>Edit</span>
-                            <span>Follow</span>
+                            <span onclick="copy_url_to_clipboard('{% clean_url %}?answer_id={{ answer.pk }}')" class="cursor-pointer">Share</span>
+                            {% if answer.user == request.user %}<span>Edit</span>{% endif %}
+                            {% if answer.user != request.user %}<span>Follow</span>{% endif %}
                         </div>
                         <div class="flex flex-col gap-2">
                             <span class="text-slate-500 text-xs">{{ answer.created_at }}</span>
@@ -75,6 +75,7 @@
                         </div>
                     </div>
                 </div>
+                <hr class="my-4">
             {% endfor %}
         </div>
         <form method="post" class="pt-5">
@@ -85,6 +86,14 @@
     </div>
 
     <script>
+        function copy_url_to_clipboard(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert("URL copied to clipboard!");
+            }).catch(err => {
+                console.error("Failed to copy URL: ", err);
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             fetch("{% url 'question-view' %}", {
                 method: 'POST',

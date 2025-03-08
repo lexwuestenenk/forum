@@ -23,7 +23,7 @@ class Question(models.Model):
 
     def get_absolute_url(self):
         return reverse("question-detail", kwargs={"pk": self.pk})
-
+    
     @property
     def vote_count(self):
         upvotes = self.votes.filter(type=True).count()
