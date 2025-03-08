@@ -59,7 +59,12 @@
                     </div>
                     <div class="flex flex-row pt-5 justify-between">
                         <div class="flex flex-row gap-3 text-slate-500 text-sm dark:text-slate-300">
-                            <span onclick="copy_url_to_clipboard('{% clean_url %}?answer_id={{ answer.pk }}')" class="cursor-pointer">Share</span>
+                            <span data-dropdown-toggle="share-link-dropdown" data-dropdown-offset-distance="-25" data-dropdown-offset-skidding="100" class="cursor-pointer">Share</span>
+                            <div id="share-link-dropdown" class="z-10 hidden bg-slate-100 divide-y divide-gray-100 rounded-lg shadow-md dark:bg-gray-700 p-3 b-2 flex flex-col gap-2">
+                                <span>Share a link to this answer</span>
+                                <input value="{% clean_url %}?answer={{ answer.pk }}" class="text-sm">
+                                <span onclick="copy_url_to_clipboard('{% clean_url %}?answer={{ answer.pk }}')" class="cursor-pointer">Copy link</span>
+                            </div>
                             {% if answer.user == request.user %}<span>Edit</span>{% endif %}
                             {% if answer.user != request.user %}<span>Follow</span>{% endif %}
                         </div>
@@ -87,11 +92,7 @@
 
     <script>
         function copy_url_to_clipboard(url) {
-            navigator.clipboard.writeText(url).then(() => {
-                alert("URL copied to clipboard!");
-            }).catch(err => {
-                console.error("Failed to copy URL: ", err);
-            });
+            navigator.clipboard.writeText(url)
         }
 
         document.addEventListener("DOMContentLoaded", function() {
