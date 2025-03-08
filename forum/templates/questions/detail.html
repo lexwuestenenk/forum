@@ -10,7 +10,7 @@
 {% block content %}
     <div class="m-5">
         <span class="text-4xl font-semibold">{{ question.title }}</span>
-        <div class="flex flex-row gap-3 pt-2 text-slate-500">
+        <div class="flex flex-row gap-3 pt-2 text-slate-500 dark:text-slate-300">
             <span class="text-sm">Asked {{ question.created_at }}</span>
             <span class="text-sm">Modified {{ question.updated_at }}</span>
             <span class="text-sm">Viewed <span id="question-view-count">{{ question.view_count }}</span><span id="question-view-count-text">{% if question.view_count == 1 %} time {% else %} times {% endif %}<span></span>
@@ -18,11 +18,11 @@
         <hr class="my-4">
         <div class="flex flex-row gap-7">
             <div class="flex flex-col gap-3">
-                <button data-question-id="{{ question.pk }}" id="question-upvote-button-{{ question.pk }}" class="question-upvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 {% if question_upvoted %}bg-orange-300 text-white{% endif %}">
-                    <svg aria-hidden="true" class="svg-icon iconArrowUp pointer-events-none" width="18" height="18" viewBox="0 0 18 18"><path d="M1 12h16L9 4z"></path></svg>
+                <button data-question-id="{{ question.pk }}" id="question-upvote-button-{{ question.pk }}" class="question-upvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 hover:bg-orange-300 {% if question_upvoted %}bg-orange-300{% endif %}">
+                    <svg aria-hidden="true" class="svg-icon iconArrowUp pointer-events-none dark:text-white" width="18" height="18" viewBox="0 0 18 18"><path d="M1 12h16L9 4z"></path></svg>
                 </button>
                 <span class="text-center font-bold font-2xl" id="question-vote-count-{{ question.pk }}">{{ question.vote_count }}</span>
-                <button data-question-id="{{ question.pk }}" id="question-downvote-button-{{ question.pk }}" class="question-downvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 {% if question_downvoted %}bg-blue-300 text-white{% endif %}">
+                <button data-question-id="{{ question.pk }}" id="question-downvote-button-{{ question.pk }}" class="question-downvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 hover:bg-blue-300 {% if question_downvoted %}bg-blue-300{% endif %}">
                     <svg aria-hidden="true" class="svg-icon iconArrowDown pointer-events-none" width="18" height="18" viewBox="0 0 18 18"><path d="M1 6h16l-8 8z"></path></svg>
                 </button>
             </div>
@@ -43,11 +43,11 @@
                 <div class="flex flex-col">
                     <div class="flex flex-row gap-7">
                         <div class="flex flex-col gap-3">
-                            <button data-answer-id="{{ answer.pk }}" id="answer-upvote-button-{{ answer.pk }}" class="answer-upvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 {% if answer.pk in answers_upvoted %}bg-orange-300 text-white{% endif %}">
+                            <button data-answer-id="{{ answer.pk }}" id="answer-upvote-button-{{ answer.pk }}" class="answer-upvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 hover:bg-orange-300 {% if answer.pk in answers_upvoted %}bg-orange-300{% endif %}">
                                 <svg aria-hidden="true" class="svg-icon iconArrowUp pointer-events-none" width="18" height="18" viewBox="0 0 18 18"><path d="M1 12h16L9 4z"></path></svg>
                             </button>
                             <span class="text-center font-bold font-2xl" id="vote-count-{{ answer.pk }}">{{ answer.vote_count }}</span>
-                            <button data-answer-id="{{ answer.pk }}" id="answer-downvote-button-{{ answer.pk }}" class="answer-downvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 {% if answer.pk in answers_downvoted %}bg-blue-300 text-white{% endif %}">
+                            <button data-answer-id="{{ answer.pk }}" id="answer-downvote-button-{{ answer.pk }}" class="answer-downvote-button flex justify-center items-center h-12 w-12 border-2 rounded-full transition-all duration-2000 hover:bg-blue-300 {% if answer.pk in answers_downvoted %}bg-blue-300{% endif %}">
                                 <svg aria-hidden="true" class="svg-icon iconArrowDown pointer-events-none" width="18" height="18" viewBox="0 0 18 18"><path d="M1 6h16l-8 8z"></path></svg>
                             </button>
                         </div>
@@ -58,7 +58,7 @@
                         </div>
                     </div>
                     <div class="flex flex-row pt-5 justify-between">
-                        <div class="flex flex-row gap-3 text-slate-500 text-sm">
+                        <div class="flex flex-row gap-3 text-slate-500 text-sm dark:text-slate-300">
                             <span onclick="copy_url_to_clipboard('{% clean_url %}?answer_id={{ answer.pk }}')" class="cursor-pointer">Share</span>
                             {% if answer.user == request.user %}<span>Edit</span>{% endif %}
                             {% if answer.user != request.user %}<span>Follow</span>{% endif %}
@@ -197,11 +197,11 @@
                 document.getElementById(`question-vote-count-${question_id}`).textContent = data.vote_count
                 const downvote_button = document.getElementById(`question-downvote-button-${question_id}`);
                 if (downvote_button) {
-                    downvote_button.classList.remove('bg-blue-300', 'text-white');
+                    downvote_button.classList.remove('bg-blue-300');
                 }      
                 const upvote_button = document.getElementById(`question-upvote-button-${question_id}`);
                 if (upvote_button) {
-                    upvote_button.classList.add('bg-orange-300', 'text-white');
+                    upvote_button.classList.add('bg-orange-300');
                 }
             })
         });
@@ -227,11 +227,11 @@
                 document.getElementById(`question-vote-count-${question_id}`).textContent = data.vote_count
                 const downvote_button = document.getElementById(`question-downvote-button-${question_id}`);
                 if (downvote_button) {
-                    downvote_button.classList.add('bg-blue-300', 'text-white');
+                    downvote_button.classList.add('bg-blue-300');
                 }      
                 const upvote_button = document.getElementById(`question-upvote-button-${question_id}`);
                 if (upvote_button) {
-                    upvote_button.classList.remove('bg-orange-300', 'text-white');
+                    upvote_button.classList.remove('bg-orange-300');
                 }
             })
         });

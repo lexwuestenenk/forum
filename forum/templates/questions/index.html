@@ -5,15 +5,15 @@
         <span class="text-4xl">Recently active questions</span>
 
         {% for question in questions %}
-            <div class="flex flex-row p-3 rounded-md gap-3 border-b-2">
+            <div class="flex flex-row p-3 rounded-md gap-3 border-b-2 border-gray-200 dark:border-gray-700">
                 <div class="flex flex-col text-sm gap-1">
                     <span>{{ question.vote_count }} {% if question.vote_count == 1 %} vote {% else %} votes {% endif %}</span>
-                    <span class="text-slate-600">{{ question.answers.count }} {% if question.answers.count == 1 %} answer {% else %} answers {% endif %}</span>
-                    <span class="text-slate-600">{{ question.view_count }} {% if question.view_count == 1 %} view {% else %} views {% endif %}</span>
+                    <span class="text-slate-600 dark:text-slate-300">{{ question.answers.count }} {% if question.answers.count == 1 %} answer {% else %} answers {% endif %}</span>
+                    <span class="text-slate-600 dark:text-slate-300">{{ question.view_count }} {% if question.view_count == 1 %} view {% else %} views {% endif %}</span>
                 </div>
                 <div class="flex flex-col">
                     <a href="{% url 'question-detail' question.pk %}" class="text-blue-500 text-xl">{{ question.title }}</a>
-                    <span>{{ question.description | striptags }}</span>
+                    <span>{{ question.text | striptags }}</span>
                 </div>
             </div>
         {% endfor %}

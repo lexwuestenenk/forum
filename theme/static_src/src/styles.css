@@ -12,3 +12,14 @@
     border-radius: 5px;
     padding: 1rem;
 }
+
+@media (prefers-color-scheme: dark) {
+    #ckeditor-5-text-container > pre {
+        background-color: rgb(17, 22, 31); /* A darker shade */
+    }
+
+    body > form > div > label {
+        --tw-text-opacity: 1;
+        color: rgb(203 213 225 / var(--tw-text-opacity, 1));
+    }
+}
