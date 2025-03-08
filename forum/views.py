@@ -12,11 +12,13 @@ from forum.models import (
     QuestionVote,
     QuestionView,
     Answer,
-    AnswerVote
+    AnswerVote,
+    Comment
 )
 from forum.forms import (
     AnswerCreateForm,
-    QuestionCreateForm
+    QuestionCreateForm,
+    CommentCreateForm
 )
 
 class HomeView(View):
@@ -67,18 +69,19 @@ class QuestionDetailView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["answers"] = Answer.objects.filter(question__pk=self.object.pk)
         context["answer_creation_form"] = AnswerCreateForm()
+        context["comment_creation_form"] = CommentCreateForm()
         context["question_upvoted"] = self.get_question_voted(True)
         context["question_downvoted"] = self.get_question_voted(False)
-        context["answers_upvoted"] = self.get_answers_voted(context["answers"], True)
-        context["answers_downvoted"] = self.get_answers_voted(context["answers"], False)
+        context["answers_upvoted"] = self.get_answers_voted(True)
+        context["answers_downvoted"] = self.get_answers_voted(False)
+        
         return context
 
-    def get_answers_voted(self, answers, upvoted = True):
+    def get_answers_voted(self, upvoted = True):
         user = self.request.user
         if user.is_authenticated:
-            return list(AnswerVote.objects.filter(user=user, answer__in=answers, type=upvoted).values_list("answer_id", flat=True))
+            return list(AnswerVote.objects.filter(user=user, answer__in=self.object.answers.all(), type=upvoted).values_list("answer_id", flat=True))
         
         return []
             
@@ -89,30 +92,6 @@ class QuestionDetailView(DetailView):
         
         return False
         
-            
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        
-        if "answer_submit" in request.POST:
-            self.handle_answer_submission(request)
-        elif "comment_submit" in request.POST:
-            self.handle_comment_submission(request)
-    
-        return self.get(request, *args, **kwargs)
-    
-    def handle_answer_submission(self, request):
-        form = AnswerCreateForm(request.POST)
-        if form.is_valid():
-            answer = form.save(commit=False)
-            answer.user = request.user
-            answer.question = self.object
-            answer.save()
-        
-        return redirect(self.object.get_absolute_url())
-    
-    def handle_comment_submission(self, request):
-        pass
-
 class QuestionCreateView(LoginRequiredMixin, CreateView):
     model = Question
     template_name = "questions/create.html"
@@ -185,6 +164,25 @@ class QuestionViewView(View):
             'view_count': question.view_count,
         })
     
+class AnswerCreationView(LoginRequiredMixin, CreateView):
+    model = Answer
+    form_class = AnswerCreateForm
+    
+    def form_valid(self, form):
+        question_id = self.kwargs.get('pk')
+        
+        try:
+            question = Question.objects.get(pk=question_id)
+        except Question.DoesNotExist:
+            return JsonResponse({'error': 'Question not found'}, status=404)
+        
+        form.instance.question = question
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('question-detail', kwargs={'pk': self.object.question.pk})
+            
 class AnswerVoteView(View):
     def post(self, request):
         data = json.loads(request.body)
@@ -212,3 +210,27 @@ class AnswerVoteView(View):
             'vote_count': answer.vote_count,
             'vote_value': vote_value,
         })
+        
+class CommentCreationView(LoginRequiredMixin, CreateView):
+    model = Comment
+    form_class = CommentCreateForm
+
+    def form_valid(self, form):
+        question_id = self.kwargs.get('question_pk')
+        answer_pk = self.kwargs.get('answer_pk')
+
+        try:
+            answer = Answer.objects.get(pk=answer_pk)
+        except Answer.DoesNotExist:
+            return redirect('question-list')
+
+        text = form.cleaned_data.get("text", "").strip()
+        if not text:
+            return self.form_invalid(form)
+
+        form.instance.answer = answer
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('question-detail', kwargs={'pk': self.object.answer.question.pk})

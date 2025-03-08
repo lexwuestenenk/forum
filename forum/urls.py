@@ -10,6 +10,8 @@ from forum.views import (
     QuestionCreateView,
     QuestionDetailView,
     QuestionDeleteView,
+    AnswerCreationView,
+    CommentCreationView,
     
     QuestionVoteView,
     QuestionViewView,
@@ -23,6 +25,8 @@ urlpatterns = [
     path('questions/create/', QuestionCreateView.as_view(), name='question-create'),
     path('questions/detail/<int:pk>/', QuestionDetailView.as_view(), name='question-detail'),
     path('questions/delete/<int:pk>/', QuestionDeleteView.as_view(), name='question-delete'),
+    path('questions/<int:pk>/answer/create', AnswerCreationView.as_view(), name='answer-create'),
+    path('questions/<int:question_pk>/answer/<int:answer_pk>/comment/create', CommentCreationView.as_view(), name='comment-create'),
     
     path('question/vote', QuestionVoteView.as_view(), name='question-vote'),
     path('question/view', QuestionViewView.as_view(), name='question-view'),

@@ -49,3 +49,9 @@ class CommentCreateForm(forms.ModelForm):
                 attrs={"class": "django_ckeditor_5"}, config_name="extends"
             )
         }
+    
+    def clean_text(self):
+        text = self.cleaned_data.get("text", "").strip()
+        if not text:
+            raise forms.ValidationError("Comment cannot be empty.")
+        return text
